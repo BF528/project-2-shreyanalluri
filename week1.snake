@@ -8,7 +8,7 @@ rule all:
     input:
         expand('results/{condition}_{rep}_fastqc.html', condition=CONDITIONS, rep=REPS),
         expand('samples/{condition}_{rep}_trimmed.fastq', condition=CONDITIONS, rep=REPS),
-        expand('results/project_2_chipseq/GRCh38.chr21.genome.{ext}', ext=['1.bt2', '2.bt2', '3.bt2', '4.bt2', 'rev.1.bt2', 'rev.2.bt2', 'fa'])
+        expand('results/project_2_chipseq/GRCh38.chr21.genome.{ext}', ext=['1.bt2', '2.bt2', '3.bt2', '4.bt2', 'rev.1.bt2', 'rev.2.bt2'])
 
 rule wget_files:
     output:
@@ -25,9 +25,10 @@ rule bowtie2_build_gencode:
     input:
         reference = 'results/project_2_chipseq/GRCh38.chr21.fa.gz'
     output:
-        index = expand('results/project_2_chipseq/GRCh38.chr21.genome.{ext}', ext=['1.bt2', '2.bt2', '3.bt2', '4.bt2', 'rev.1.bt2', 'rev.2.bt2', 'fa'])
+        index = temp('results/project_2_chipseq/GRCh38.chr21.genome.{ext}')
     params:
-        threads: 16
+        ext = "{wildcards.ext}",
+    threads: 16
     conda:
         'envs/bowtie2_env.yml'
     shell:
@@ -65,5 +66,4 @@ rule trimmomatic:
         trimmomatic SE -threads {threads} {input.fastq} {output.fastq_trimmed} \
         ILLUMINACLIP:{params.adapters}:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15
         '''
-
-	
+		
