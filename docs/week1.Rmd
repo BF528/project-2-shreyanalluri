@@ -1,15 +1,15 @@
 ---
 title: "Week1.Rmd"
 output: html_document
-date: '2024-03-01'
+date: '2024-03-12'
 ---
 
 Use this notebook to quickly write the methods for the week:
 
-
-
-
-
+Full data files were downloaded by updating the sample_sheet.csv file with the correct ftp links. 
+fastqc was run on each of the 4 data files and inspected. 
+These reads were trimmed using trimmomatic. 
+Bowtie 2 was used to create an index of the entire human genome that will later be used for alignment. 
 
 If asked, you may also include any plots or figures in this notebook as well:
 
