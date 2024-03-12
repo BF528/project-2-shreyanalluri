@@ -6,9 +6,10 @@ REPS = set(sample_csv['replicate'].tolist())
 
 rule all:
     input:
-        expand('results/{condition}_{rep}_fastqc.html', condition=CONDITIONS, rep=REPS),
-        expand('samples/{condition}_{rep}_trimmed.fastq', condition=CONDITIONS, rep=REPS),
-        expand('results/project_2_chipseq/GRCh38.chr21.genome.{ext}', ext=['1.bt2', '2.bt2', '3.bt2', '4.bt2', 'rev.1.bt2', 'rev.2.bt2'])
+        'samples/{condition}_{rep}.fastq.gz'
+        expand('results/project_2_chipseq/{condition}_{rep}_fastqc.html', condition=CONDITIONS, rep=REPS),
+        expand('results/{condition}_{rep}.trimmed.fastq.gz', condition=CONDITIONS, rep=REPS),
+        expand('results/project_2_chipseq/chr21_reference.{ext}', ext=['1.bt2', '2.bt2', '3.bt2', '4.bt2', 'rev.1.bt2', 'rev.2.bt2'])
 
 rule wget_files:
     output:
@@ -25,24 +26,25 @@ rule bowtie2_build_gencode:
     input:
         reference = 'results/project_2_chipseq/GRCh38.chr21.fa.gz'
     output:
-        index = temp('results/project_2_chipseq/GRCh38.chr21.genome.{ext}')
+        expand('results/project_2_chipseq/chr21_reference.{ext}', ext=['1.bt2', '2.bt2', '3.bt2', '4.bt2', 'rev.1.bt2', 'rev.2.bt2'])
     params:
-        ext = "{wildcards.ext}",
+        basename = "results/project_2_chipseq/chr21_reference"
     threads: 16
     conda:
         'envs/bowtie2_env.yml'
     shell:
-        '''
-        bowtie2-build --threads {threads} {input.reference} {output.index}
-        '''
+        """
+        bowtie2-build --threads {threads} {input.reference} {params.basename}
+        """
+
 
 rule fastqc:
     input:
         fastq = 'samples/{condition}_{rep}.fastq.gz'
     output:
-        fastqc = 'results/{condition}_{rep}_fastqc.html'
+        fastqc = 'results/project_2_chipseq/{condition}_{rep}_fastqc.html'
     params:
-        outdir = 'results/'
+        outdir = 'results/project_2_chipseq'
     threads: 4
     conda:
         'envs/fastqc_env.yml'
@@ -53,17 +55,19 @@ rule fastqc:
 
 rule trimmomatic:
     input:
-        fastq = 'samples/{condition}_{rep}.fastq.gz'
-    output:
-        fastq_trimmed = 'samples/{condition}_{rep}_trimmed.fastq'
-    params:
+        fastqc = 'results/project_2_chipseq/{condition}_{rep}_fastqc.html', ### tell snakemake to run this rule after fastqc is finished
+        fastq = 'samples/{condition}_{rep}.fastq.gz',
         adapters = 'results/project_2_chipseq/TruSeq3-SE.fa'
-    threads: 8
+    output:
+        trimmed_fastq = 'results/{condition}_{rep}.trimmed.fastq.gz'
+    params:
+        threads = 8
     conda:
         'envs/trimmomatic_env.yml'
     shell:
-        '''
-        trimmomatic SE -threads {threads} {input.fastq} {output.fastq_trimmed} \
-        ILLUMINACLIP:{params.adapters}:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15
-        '''
-		
+        """
+        trimmomatic SE -threads {params.threads} {input.fastq} {output.trimmed_fastq} \
+        ILLUMINACLIP:{input.adapters}:2:30:10 \
+        LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15
+        """
+
