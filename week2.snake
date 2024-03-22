@@ -8,7 +8,12 @@ rule all:
     input:
         expand('results/project_2_chipseq/{condition}_{rep}.bam', condition=CONDITIONS, rep=REPS),
         expand('results/project_2_chipseq/{condition}_{rep}_sorted.bam', condition=CONDITIONS, rep=REPS),
-        expand('results/project_2_chipseq/{condition}_{rep}.bai', condition=CONDITIONS, rep=REPS)
+        expand('results/project_2_chipseq/{condition}_{rep}.bai', condition=CONDITIONS, rep=REPS),
+        expand('results/project_2_chipseq/{condition}_{rep}_flagstats.txt', condition=CONDITIONS, rep=REPS),
+        'results/project_2_chipseq/chipseq_multiqc.html',
+        expand('results/project_2_chipseq/{condition}_{rep}_bamcoverage.bw', condition=CONDITIONS, rep=REPS),
+        'results/project_2_chipseq/chipseq_bigwigsummary.npz',
+        'results/project_2_chipseq/chipseq_heatmap.png'
 rule bowtie2_align:
     input: 
         fastq = 'samples/Full_files/{condition}_{rep}.fastq.gz',
@@ -48,42 +53,65 @@ rule samtools_idx:
 		'''
 		samtools index {input.sorted_bam}
 		'''
-
+rule samtools_flagstats:
+    input:
+        sorted_bam = 'results/project_2_chipseq/{condition}_{rep}_sorted.bam'
+    output:
+        flagstats = 'results/project_2_chipseq/{condition}_{rep}_flagstats.txt'
+    conda:
+        'envs/samtools_env.yml'
+    shell:
+        '''
+        samtools flagstats {input.sorted_bam} > {output.flagstats}
+        '''
 rule multiqc:
 	input:
+		flagstats = expand('results/project_2_chipseq/{condition}_{rep}_flagstats.txt', condition=CONDITIONS, rep=REPS)
 	output:
+		qc_report = 'results/project_2_chipseq/chipseq_multiqc.html'
 	params:
+		outdir = 'results/project_2_chipseq/'
 	conda:
 		'envs/multiqc_env.yml'
 	shell:
 		'''
+		multiqc {params.outdir} -o {params.outdir}
 		'''
-
 rule bamCoverage:
 	input:
+		sorted_bam = 'results/project_2_chipseq/{condition}_{rep}_sorted.bam'
 	output:
+		sorted_bigwig = 'results/project_2_chipseq/{condition}_{rep}_bamcoverage.bw'
 	threads: 4
 	conda:
 		'envs/deeptools_env.yml'
 	shell:
 		'''
+		bamCoverage -b {input.sorted_bam} -o {output.sorted_bigwig}
 		'''
 
 rule multiBwSummary:
 	input:
+		sorted_bigwig = expand('results/project_2_chipseq/{condition}_{rep}_bamcoverage.bw', condition=CONDITIONS, rep=REPS),
+		indir = 'results/project_2_chipseq/'
 	output:
+		bigwig_summary = 'results/project_2_chipseq/chipseq_bigwigsummary.npz'
 	conda:
 		'envs/deeptools_env.yml'
 	shell:
 		'''
+		multiBigwigSummary bins -b {input.indir} -o {output.bigwig_summary}
 		'''
 
 rule plotCorrelation:
 	input:
+		bigwig_summary = 'results/project_2_chipseq/chipseq_bigwigsummary.npz'
 	output:
+		plot = 'results/project_2_chipseq/chipseq_heatmap.png'
 	params:
 	conda:
 		'envs/deeptools_env.yml'
 	shell:
 		'''
+		plotCorrelation -in {input.bigwig_summary} -c pearson -p heatmap -o {output.plot}
 		'''
