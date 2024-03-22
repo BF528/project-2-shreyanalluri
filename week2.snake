@@ -5,36 +5,49 @@ CONDITIONS = set(sample_csv['condition'].tolist())
 REPS = set(sample_csv['replicate'].tolist())
 
 rule all:
-	input:
-		expand('results/project_2_chipseq/{condition}_{rep}.sam', condition=CONDITIONS, rep=REPS)
+    input:
+        expand('results/project_2_chipseq/{condition}_{rep}.bam', condition=CONDITIONS, rep=REPS),
+        expand('results/project_2_chipseq/{condition}_{rep}_sorted.bam', condition=CONDITIONS, rep=REPS),
+        expand('results/project_2_chipseq/{condition}_{rep}.bai', condition=CONDITIONS, rep=REPS)
 rule bowtie2_align:
-	input: 
-		fastq = 'samples/Full_files/{condition}_{rep}.fastq.gz'
-		index = 'GRCh38_index'
-	output:
-		sam_file = 'results/project_2_chipseq/{condition}_{rep}.sam'
-	threads: 16
-	params:
+    input: 
+        fastq = 'samples/Full_files/{condition}_{rep}.fastq.gz',
+        index_files = expand('results/project_2_chipseq/GRCh38_index.{ext}', ext=['1.bt2', '2.bt2', '3.bt2', '4.bt2', 'rev.1.bt2', 'rev.2.bt2'])
+    output:
+        bam_file = 'results/project_2_chipseq/{condition}_{rep}.bam'
+    threads: 16
+    params:
+        index_basename = 'GRCh38_index'
+    conda:
+        'envs/bowtie2_env.yml'
+    shell:
+        '''
+        bowtie2 -x {params.index_basename} -U {input.fastq} |samtools view -bS - > {output.bam_file}
+        '''
 
-	conda:
-		'envs/bowtie2_env.yml'
-	shell:
-		'''
-		bowtie2 -x <input.index> -U <input.fastq> -S <output.sam_file>
-		'''
 rule samtools_sort:
 	input:
+		bam_file = 'results/project_2_chipseq/{condition}_{rep}.bam'
 	output:
+		sorted_bam = 'results/project_2_chipseq/{condition}_{rep}_sorted.bam'
 	conda:
 		'envs/samtools_env.yml'
 	shell:
+		'''
+		samtools sort {input.bam_file} -o {output.sorted_bam}
+		'''
 
 rule samtools_idx:
 	input:
+		sorted_bam = 'results/project_2_chipseq/{condition}_{rep}_sorted.bam'
 	output:
+		index_bam = 'results/project_2_chipseq/{condition}_{rep}.bai'
 	conda:
 		'envs/samtools_env.yml'
 	shell:
+		'''
+		samtools index {input.sorted_bam}
+		'''
 
 rule multiqc:
 	input:
@@ -43,6 +56,8 @@ rule multiqc:
 	conda:
 		'envs/multiqc_env.yml'
 	shell:
+		'''
+		'''
 
 rule bamCoverage:
 	input:
@@ -51,6 +66,8 @@ rule bamCoverage:
 	conda:
 		'envs/deeptools_env.yml'
 	shell:
+		'''
+		'''
 
 rule multiBwSummary:
 	input:
@@ -58,6 +75,8 @@ rule multiBwSummary:
 	conda:
 		'envs/deeptools_env.yml'
 	shell:
+		'''
+		'''
 
 rule plotCorrelation:
 	input:
@@ -66,3 +85,5 @@ rule plotCorrelation:
 	conda:
 		'envs/deeptools_env.yml'
 	shell:
+		'''
+		'''
