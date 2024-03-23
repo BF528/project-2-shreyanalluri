@@ -6,10 +6,9 @@ date: '2024-03-01'
 
 Use this notebook to quickly write the methods for the week:
 
-
-
-
-
+Aligned sample fastq files against GRch38 index using default parameters and converted output to bam file using samtools.
+Sorted bam files using samtools sort and indexed using samtools index, following default parameters.
+Performed QC on alignment using flagstats with default parameters and concatenated QC reports from flagstats and fastqc using multiqc. 
+Converted sorted bam files to bigwig format using deeptools bamCoverage with default parameters and produced a clustered heatmap of the Pearson correlation values between all the samples from resultant matrix using deeptools plotCorrelation. 
 
 If asked, you may also include any plots or figures in this notebook as well:
-
