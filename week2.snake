@@ -87,7 +87,7 @@ rule bamCoverage:
 		'envs/deeptools_env.yml'
 	shell:
 		'''
-		bamCoverage -b {input.sorted_bam} -o {output.sorted_bigwig}
+		bamCoverage --threads {threads} -b {input.sorted_bam} -o {output.sorted_bigwig}
 		'''
 
 rule multiBwSummary:
