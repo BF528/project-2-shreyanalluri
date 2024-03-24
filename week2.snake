@@ -27,7 +27,7 @@ rule bowtie2_align:
         'envs/bowtie2_env.yml'
     shell:
         '''
-        bowtie2 -x {params.index_basename} -U {input.fastq}|samtools view -bS - > {output.bam_file}
+        bowtie2 --threads {threads} -x {params.index_basename} -U {input.fastq}|samtools view -bS - > {output.bam_file}
         '''
 
 rule samtools_sort:
@@ -87,7 +87,7 @@ rule bamCoverage:
 		'envs/deeptools_env.yml'
 	shell:
 		'''
-		bamCoverage --threads {threads} -b {input.sorted_bam} -o {output.sorted_bigwig}
+		bamCoverage -b {input.sorted_bam} -o {output.sorted_bigwig}
 		'''
 
 rule multiBwSummary:
