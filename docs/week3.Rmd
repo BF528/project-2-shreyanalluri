@@ -5,7 +5,12 @@ date: '2024-03-01'
 ---
 
 Use this notebook to quickly write the methods for the week:
-
+Converted BAM files to HOMER specific input using makeTagDirectory. 
+Performed peak calling on replicates of RUNX1, using input control as the background enrichment control. 
+-nfr tag used  to narrow the search for regulatory elements down the +/- 100 bp instead of +/-500 or 1000 bp.
+Converted HOMER specific peak file to BED format using pos2bed.pl.
+Used these converted BED files to identify reproducible peaks, ie peaks that overlap between the 2 replicates. This was done using bedtools. 
+-f 0.90 -r -wa -wb options are used to output only intervals that have at least 90% overlap with each other.  
 
 
 
