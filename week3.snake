@@ -91,7 +91,7 @@ rule unzip_gtf:
 
 rule annotate_peaks:
 	input:
-		repro_peaks = 'results/project_2_chipseq/reproducible_peaks.bed',
+		repro_peaks = 'results/project_2_chipseq/filtered_reproducible_peaks.bed',
 		gtf = 'results/project_2_chipseq/gencode.v45.primary_assembly.annotation.gtf'
 	output:
 		annot_peaks = 'results/project_2_chipseq/annotated_peaks.txt'
@@ -114,7 +114,7 @@ rule unzip_genome:
 
 rule motifs:
 	input:
-		repro_peaks = 'results/project_2_chipseq/reproducible_peaks.bed',
+		repro_peaks = 'results/project_2_chipseq/filtered_reproducible_peaks.bed',
 		hg38fa = 'project-2-shreyanalluri/results/project_2_chipseq/GRCh38.primary_assembly.genome.fa'
 	output:
 		motif_dir = directory('results/project_2_chipseq/motifs')
