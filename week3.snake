@@ -38,7 +38,7 @@ rule findPeaks:
 		'envs/homer_env.yml'
 	shell:
 		'''
-		findPeaks {input.exp_dir} -style factor -nfr -i {input.control_dir} -o auto
+		findPeaks {input.exp_dir} -style factor -nfr -i {input.control_dir} -o {output.peaks}
 		'''
 
 rule convertPeakFiles:
