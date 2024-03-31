@@ -9,7 +9,11 @@ rule all:
 		#expand('results/project_2_chipseq/tag_{condition}_{rep}', condition = CONDITIONS, rep = REPS),
 		#expand('results/project_2_chipseq/RUNX1_{rep}_peaks.bed', rep = REPS)
 		#'results/project_2_chipseq/reproducible_peaks.bed'
-		'results/project_2_chipseq/filtered_reproducible_peaks.bed'
+		#'results/project_2_chipseq/filtered_reproducible_peaks.bed'
+		'results/project_2_chipseq/annotated_peaks.txt',
+		'results/project_2_chipseq/motifs'
+		
+		
 
 rule make_tag_dir:
 	input: 
@@ -64,7 +68,7 @@ rule intersect_peaks:
 
 rule filter_blacklist:
 	input:
-		blacklist = 'results/project_2_chipseq/hg38-blacklist.v2.bed',
+		blacklist = 'results/hg38-blacklist.v2.bed',
 		repro_peaks = 'results/project_2_chipseq/reproducible_peaks.bed'
 	output:
 		filtered_peaks = 'results/project_2_chipseq/filtered_reproducible_peaks.bed'
@@ -77,32 +81,46 @@ rule filter_blacklist:
 
 rule unzip_gtf:
 	input:
+		gz = 'results/project_2_chipseq/gencode.v45.primary_assembly.annotation.gtf.gz'
 	output:
+		gtf = 'results/project_2_chipseq/gencode.v45.primary_assembly.annotation.gtf'
 	shell:
 		'''
+		gunzip -c {input.gz} > {output.gtf}
 		'''
 
 rule annotate_peaks:
 	input:
+		repro_peaks = 'results/project_2_chipseq/reproducible_peaks.bed',
+		gtf = 'results/project_2_chipseq/gencode.v45.primary_assembly.annotation.gtf'
 	output:
+		annot_peaks = 'results/project_2_chipseq/annotated_peaks.txt'
 	conda:
 		'envs/homer_env.yml'
 	shell:
 		'''
+		annotatepeaks.pl {input.repro_peaks} hg38 {input.gtf} > {output.annot_peaks}
 		'''
 
 rule unzip_genome:
 	input:
+		hg38fa_gz = 'results/project_2_chipseq/GRCh38.primary_assembly.genome.fa.gz'
 	output:
+		hg38fa = 'project-2-shreyanalluri/results/project_2_chipseq/GRCh38.primary_assembly.genome.fa'
 	shell:
 		'''
+		gunzip -c {input.hg38fa_gz} > {output.hg38fa}
 		'''
 
 rule motifs:
 	input:
+		repro_peaks = 'results/project_2_chipseq/reproducible_peaks.bed',
+		hg38fa = 'project-2-shreyanalluri/results/project_2_chipseq/GRCh38.primary_assembly.genome.fa'
 	output:
+		motif_dir = directory('results/project_2_chipseq/motifs')
 	conda:
 		'envs/homer_env.yml'
 	shell:
 		'''
+		findMotifsGenome.pl {input.repro_peaks} {input.hg38fa} {output.motif_dir}/ -size 200 -mask
 		'''
