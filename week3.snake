@@ -99,7 +99,7 @@ rule annotate_peaks:
 		'envs/homer_env.yml'
 	shell:
 		'''
-		annotatepeaks.pl {input.repro_peaks} hg38 -gtf {input.gtf} > {output.annot_peaks}
+		annotatePeaks.pl {input.repro_peaks} hg38 -gtf {input.gtf} > {output.annot_peaks}
 		'''
 
 rule unzip_genome:
