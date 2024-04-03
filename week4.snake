@@ -10,18 +10,19 @@ rule all:
 
 rule computeMatrix:
 	input:
-		bw = 'results/project_2_chipseq/RUNX1_{rep}_bamcoverage.bigWig'
+		bw = 'results/project_2_chipseq/RUNX1_{rep}_bamcoverage.bigWig',
 		genes = 'results/project_2_chipseq/hg38_genes.bed'
 	output:
 		score_matrix = 'results/project_2_chipseq/{rep}_scores.gz'
 	params:
+		bin_size=2000
 	conda:
 		'envs/deeptools_env.yml'
 	threads: 4
 	shell:
-	'''
-	computeMatrix scale-regions -S {input.bw} -R {input.genes} -b 2000 -o {output.score_matrix}
-	'''
+		'''
+		computeMatrix --threads {threads} scale-regions -S {input.bw} -R {input.genes} -b {params.bin_size} -o {output.score_matrix}
+		'''
 
 rule plotMatrix:
 	input:
@@ -31,6 +32,6 @@ rule plotMatrix:
 	conda:
 		'envs/deeptools_env.yml'
 	shell:
-	'''
-	plotProfile -m {input.matrix} -o {output.plot}
-	'''
+		'''
+		plotProfile -m {input.matrix} -o {output.plot}
+		'''
