@@ -13,7 +13,7 @@ rule computeMatrix:
 		bw = 'results/project_2_chipseq/RUNX1_{rep}_bamcoverage.bigWig',
 		genes = 'results/project_2_chipseq/hg38_genes.bed'
 	output:
-		score_matrix = 'results/project_2_chipseq/{rep}_scores.gz'
+		score_matrix = 'results/project_2_chipseq/{rep}_scores.txt.gz'
 	params:
 		bin_size=2000
 	conda:
@@ -26,7 +26,7 @@ rule computeMatrix:
 
 rule plotMatrix:
 	input:
-		matrix = 'results/project_2_chipseq/{rep}_scores.gz'
+		matrix = 'results/project_2_chipseq/{rep}_scores.txt.gz'
 	output:
 		plot = 'results/project_2_chipseq/{rep}_coverage_plot.png'
 	conda:
