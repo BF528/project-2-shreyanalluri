@@ -13,7 +13,7 @@ rule computeMatrix:
 		bw = 'results/project_2_chipseq/RUNX1_{rep}_bamcoverage.bigWig',
 		genes = 'results/project_2_chipseq/hg38_genes.bed'
 	output:
-		score_matrix = 'results/project_2_chipseq/{rep}_scores.txt.gz'
+		score_matrix = 'results/project_2_chipseq/{rep}_scores.gz'
 	params:
 		bin_size=2000
 	conda:
@@ -21,12 +21,12 @@ rule computeMatrix:
 	threads: 4
 	shell:
 		'''
-		computeMatrix --threads {threads} scale-regions -S {input.bw} -R {input.genes} -b {params.bin_size} -o {output.score_matrix}
+		computeMatrix scale-regions -S {input.bw} -R {input.genes} -b {params.bin_size} -a {params.bin_size} -o {output.score_matrix}
 		'''
 
 rule plotMatrix:
 	input:
-		matrix = 'results/project_2_chipseq/{rep}_scores.txt.gz'
+		matrix = 'results/project_2_chipseq/{rep}_scores.gz'
 	output:
 		plot = 'results/project_2_chipseq/{rep}_coverage_plot.png'
 	conda:
